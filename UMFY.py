@@ -3,6 +3,7 @@
 import streamlit as st
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import random
+import time
 
 # Modell und Tokenizer initialisieren
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
@@ -59,3 +60,7 @@ if __name__ == "__main__":
     if st.button("Speichern"):
         st.write(f"Sie haben '{selected_option}' als Antwort gespeichert.")
         st.write("Vielen Dank fürs Mitmachen!")
+        
+        # Weiterleitung nach 2 Sekunden
+        time.sleep(2)
+        st.experimental_rerun()
