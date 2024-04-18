@@ -52,6 +52,10 @@ def generate_survey_question():
 
 # Führe die Streamlit-Anwendung aus
 if __name__ == "__main__":
+    # Großer Titel in violetter Farbe
+    st.title("UMFY")
+    st.markdown("<h2 style='color:purple;'>Eine Umfrage pro Tag</h2>", unsafe_allow_html=True)
+
     topic, question, answer_options = generate_survey_question()
 
     st.write(f"Umfragefrage zum Thema '{topic}': {question}")
