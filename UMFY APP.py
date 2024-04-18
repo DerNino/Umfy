@@ -46,3 +46,4 @@ def generate_social_question():
     question = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
     
     return question, topic
+
