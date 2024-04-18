@@ -6,5 +6,6 @@
 5. **Fehlerfreundlichkeit**: Wir erwarten, dass der Wireframe klar auf Benutzereingaben reagiert und Fehlermeldungen hilfreich sind.
 
 ***Test-Raster***
+
 ![image](https://github.com/SackUeli/Umfy/assets/162135768/332e7601-04c6-45ec-b5de-ceb0589de462)
  
