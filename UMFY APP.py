@@ -1,16 +1,10 @@
 import streamlit as st
-import subprocess
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import random
-import torch
 
-
-# Modell und Tokenizer laden
-try:
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
-    model = GPT2LMHeadModel.from_pretrained("gpt2-medium")
-except ImportError as e:
-    st.error(f"Es gab einen Fehler beim Laden des GPT-2-Modells: {e}")
+# Modell und Tokenizer initialisieren (Fehlerbehandlung wird hier nicht benötigt)
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
+model = GPT2LMHeadModel.from_pretrained("gpt2-medium")
 
 def generate_social_question():
     # Liste von sozialkritischen Themen
@@ -46,4 +40,3 @@ def generate_social_question():
     question = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
     
     return question, topic
-
