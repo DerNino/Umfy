@@ -1,46 +1,48 @@
 import streamlit as st
+import subprocess
+from transformers import GPT2Tokenizer, GPT2LMHeadModel
+import random
+import torch
 
-# Counter für die Anzahl der Teilnehmer
-participants = 0
 
-# Funktion zum Zählen der Teilnehmer
-def count_participants():
-    global participants
-    participants += 1
+# Modell und Tokenizer laden
+try:
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
+    model = GPT2LMHeadModel.from_pretrained("gpt2-medium")
+except ImportError as e:
+    st.error(f"Es gab einen Fehler beim Laden des GPT-2-Modells: {e}")
 
-# App-Layout
-st.title("Umfrage-App")
-
-# Tägliche Umfrage
-st.header("Tägliche Umfrage")
-question = st.text_input("Frage:")
-option1 = st.text_input("Option 1:")
-option2 = st.text_input("Option 2:")
-option3 = st.text_input("Option 3:")
-vote_button = st.button("Abstimmen")
-
-# Anzeige der Teilnehmeranzahl
-st.sidebar.header("Teilnehmer heute")
-st.sidebar.write(f"Teilnehmer: {participants}")
-
-# Ergebnisse der letzten Umfrage
-st.sidebar.header("Ergebnisse der letzten Umfrage")
-st.sidebar.write("Option 1: xx%")
-st.sidebar.write("Option 2: xx%")
-st.sidebar.write("Option 3: xx%")
-
-# Einwilligung
-consent = st.checkbox("Ich stimme der Verwendung meiner Daten zu")
-accept_button = st.button("Akzeptieren")
-
-# Teilnehmerzählung aktualisieren, wenn abgestimmt wird
-if vote_button:
-    count_participants()
-
-# Logik für Akzeptieren-Button
-if accept_button:
-    if consent:
-        st.write("Vielen Dank für Ihre Einwilligung!")
-    else:
-        st.write("Bitte stimmen Sie der Verwendung Ihrer Daten zu.")
-
+def generate_social_question():
+    # Liste von sozialkritischen Themen
+    topics = [
+        "Umweltschutz",
+        "Menschenrechte",
+        "Soziale Gerechtigkeit",
+        "Klimawandel",
+        "Gesellschaftliche Ungleichheit",
+        "Globalisierung"
+    ]
+    
+    # Zufälliges Thema auswählen
+    topic = random.choice(topics)
+    
+    # Prompt für die Frageerstellung
+    prompt = f"Stelle eine Frage zum Thema '{topic}':"
+    
+    # Kodiere das Eingabe-Prompt
+    input_ids = tokenizer.encode(prompt, return_tensors="pt")
+    
+    # Generiere eine Frage mit dem Modell
+    output = model.generate(
+        input_ids,
+        max_length=150,  # Erhöhe die maximale Länge der generierten Sequenz
+        num_return_sequences=1,
+        temperature=0.8,  # Ändere die Temperatur für variablere Ausgaben
+        top_p=0.95,  # Verwende Top-p Sampling für variablere Ausgaben
+        repetition_penalty=1.2  # Erhöhe die Repetition Penalty, um Wiederholungen zu verringern
+    )
+    
+    # Dekodiere die generierte Frage
+    question = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
+    
+    return question, topic
