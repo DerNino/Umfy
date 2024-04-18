@@ -13,9 +13,9 @@ def generate_survey_question():
     # Liste von Umfrage-Themen und zugehörigen Fragen
     survey_topics = {
         "Flugreisen": "Wie oft sind Sie im letzten Jahr geflogen?",
-        "Essensausgaben": "Wie viel zahlen Sie täglich für Essen aus?",
+        "Essensausgaben": "Wie viel geben Sie durchschnittlich für Essen pro Mahlzeit aus?",
         "Autoverkehr": "Wie viele Kilometer fahren Sie täglich mit dem Auto?",
-        "Sportaktivitäten": "Wie oft treiben Sie Sport pro Woche?",
+        "Sportaktivitäten": "Wie oft betreiben Sie körperliche Aktivitäten pro Woche?",
         "Bildschirmzeit": "Wie viele Stunden verbringen Sie täglich vor Bildschirmen?",
         "Einkaufsgewohnheiten": "Wo kaufen Sie am häufigsten Lebensmittel ein?",
         "Urlaubsziele": "Welche Art von Urlaub bevorzugen Sie am meisten?",
@@ -37,12 +37,18 @@ def generate_survey_question():
     if topic in ["Flugreisen", "Autoverkehr", "Sportaktivitäten", "Bildschirmzeit", "Gesundheitsvorsorge", 
                  "Nutzung von Öffentlichen Verkehrsmitteln", "Arbeitszeit", "Fernsehgewohnheiten", "Social Media Nutzung"]:
         answer_options = ["Weniger als 1x pro Woche", "1-2x pro Woche", "3-4x pro Woche", "Mehr als 4x pro Woche"]
-    elif topic in ["Essensausgaben", "Einkaufsgewohnheiten", "Freizeitaktivitäten", "Urlaubsziele"]:
-        answer_options = ["Weniger als 10€", "10€-20€", "20€-30€", "Mehr als 30€"]
+    elif topic in ["Essensausgaben"]:
+        answer_options = ["Weniger als 5€", "5€-10€", "10€-20€", "Mehr als 20€"]
+    elif topic in ["Einkaufsgewohnheiten"]:
+        answer_options = ["Supermarkt", "Bauernmarkt", "Online", "Bioladen"]
+    elif topic in ["Urlaubsziele"]:
+        answer_options = ["Strandurlaub", "Städtereise", "Aktivurlaub", "Abenteuerreise"]
+    elif topic in ["Freizeitaktivitäten"]:
+        answer_options = ["Sport treiben", "Lesen", "Musik hören", "Gesellschaftsspiele spielen"]
     elif topic in ["Rauchgewohnheiten"]:
         answer_options = ["Ja", "Nein"]
     elif topic in ["Alkoholkonsum"]:
-        answer_options = ["Gar nicht", "1-2 mal", "3-4 mal", "Mehr als 4 mal"]
+        answer_options = ["Gar nicht", "Gelegentlich", "Einmal pro Woche", "Mehrmals pro Woche"]
     # Füge weitere Antwortmöglichkeiten für andere Themen hinzu, falls gewünscht
     
     return topic, question, answer_options
