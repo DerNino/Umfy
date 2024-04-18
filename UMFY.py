@@ -3,21 +3,25 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import random
 import time
 
+# Bibliothek für das Diagramm importieren
 import matplotlib.pyplot as plt
 
-# Daten
+# Daten für das Diagramm
 umfrage_ergebnisse = [25, 30, 20, 15, 10]
 tage = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag']
 
 # Diagramm erstellen
 plt.bar(tage, umfrage_ergebnisse)
 
-# Titel hinzufügen
+# Titel und Achsenbeschriftungen hinzufügen
 plt.title('UMFY', color='purple')
 plt.xlabel('Tage')
 plt.ylabel('Umfrageergebnisse')
 plt.text(0.5, -0.1, 'Eine Umfrage pro Tag', transform=plt.gca().transAxes, ha='center')
-plt.show()
+
+# Streamlit-Anwendung
+st.pyplot()
+
 # Modell und Tokenizer initialisieren
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
 model = GPT2LMHeadModel.from_pretrained("gpt2-medium")
