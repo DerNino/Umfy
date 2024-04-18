@@ -41,10 +41,34 @@ def generate_social_question():
     # Dekodiere die generierte Frage
     question = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
     
-    return question, topic
+    # Generiere vier Antwortmöglichkeiten mit dem Modell
+    answer_options = []
+    for _ in range(4):
+        output = model.generate(
+            input_ids,
+            max_length=50,  # Erhöhe die maximale Länge der generierten Sequenz für die Antwortmöglichkeiten
+            num_return_sequences=1,
+            temperature=0.8,  # Ändere die Temperatur für variablere Ausgaben
+            top_p=0.95,  # Verwende Top-p Sampling für variablere Ausgaben
+            repetition_penalty=1.2  # Erhöhe die Repetition Penalty, um Wiederholungen zu verringern
+        )
+        answer = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
+        answer_options.append(answer)
+    
+    return question, topic, answer_options
 
 # Führe die Streamlit-Anwendung aus
 if __name__ == "__main__":
-    question, topic = generate_social_question()
+    question, topic, answer_options = generate_social_question()
+    
+    # Anzahl der bereits abgestimmten Personen
+    num_votes = st.session_state.get("num_votes", 0)
+    
     st.write(f"Frage zum Thema '{topic}': {question}")
-
+    st.write("Antwortmöglichkeiten:")
+    for i, answer in enumerate(answer_options):
+        st.write(f"{i+1}. {answer}")
+    
+    # Popup-Feld mit der Anzahl der bereits abgestimmten Personen
+    if st.button("Anzeigen"):
+        st.sidebar.text(f"Bereits abgestimmt: {num_votes} Personen")
