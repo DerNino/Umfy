@@ -8,67 +8,36 @@ import random
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
 model = GPT2LMHeadModel.from_pretrained("gpt2-medium")
 
-def generate_social_question():
-    # Liste von sozialkritischen Themen
-    topics = [
-        "Umweltschutz",
-        "Menschenrechte",
-        "Soziale Gerechtigkeit",
-        "Klimawandel",
-        "Gesellschaftliche Ungleichheit",
-        "Globalisierung"
-    ]
+def generate_survey_question():
+    # Liste von Umfrage-Themen und zugehörigen Fragen
+    survey_topics = {
+        "Flugreisen": "Wie oft sind Sie im letzten Jahr geflogen?",
+        "Essensausgaben": "Wie viel zahlen Sie täglich für Essen aus?"
+        # Füge weitere Umfrage-Themen und Fragen hinzu, falls gewünscht
+    }
     
     # Zufälliges Thema auswählen
-    topic = random.choice(topics)
+    topic = random.choice(list(survey_topics.keys()))
+    question = survey_topics[topic]
     
-    # Prompt für die Frageerstellung
-    prompt = f"Stelle eine Frage zum Thema '{topic}':"
+    # Generiere Antwortmöglichkeiten basierend auf dem gewählten Thema
+    if topic == "Flugreisen":
+        answer_options = ["1x", "2x", "3x", "4x oder mehr"]
+    elif topic == "Essensausgaben":
+        answer_options = ["Weniger als 10€", "10€-20€", "20€-30€", "Mehr als 30€"]
+    # Füge weitere Antwortmöglichkeiten für andere Themen hinzu, falls gewünscht
     
-    # Kodiere das Eingabe-Prompt
-    input_ids = tokenizer.encode(prompt, return_tensors="pt")
-    
-    # Generiere eine Frage mit dem Modell
-    output = model.generate(
-        input_ids,
-        max_length=150,  # Erhöhe die maximale Länge der generierten Sequenz
-        num_return_sequences=1,
-        temperature=0.8,  # Ändere die Temperatur für variablere Ausgaben
-        top_p=0.95,  # Verwende Top-p Sampling für variablere Ausgaben
-        repetition_penalty=1.2  # Erhöhe die Repetition Penalty, um Wiederholungen zu verringern
-    )
-    
-    # Dekodiere die generierte Frage
-    question = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
-    
-    # Generiere vier Antwortmöglichkeiten mit dem Modell
-    answer_options = []
-    for _ in range(4):
-        output = model.generate(
-            input_ids,
-            max_length=50,  # Erhöhe die maximale Länge der generierten Sequenz für die Antwortmöglichkeiten
-            num_return_sequences=1,
-            temperature=0.8,  # Ändere die Temperatur für variablere Ausgaben
-            top_p=0.95,  # Verwende Top-p Sampling für variablere Ausgaben
-            repetition_penalty=1.2  # Erhöhe die Repetition Penalty, um Wiederholungen zu verringern
-        )
-        answer = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
-        answer_options.append(answer)
-    
-    return question, topic, answer_options
+    return topic, question, answer_options
 
 # Führe die Streamlit-Anwendung aus
 if __name__ == "__main__":
-    question, topic, answer_options = generate_social_question()
+    topic, question, answer_options = generate_survey_question()
     
-    # Anzahl der bereits abgestimmten Personen
-    num_votes = st.session_state.get("num_votes", 0)
+    st.write(f"Umfragefrage zum Thema '{topic}': {question}")
     
-    st.write(f"Frage zum Thema '{topic}': {question}")
-    st.write("Antwortmöglichkeiten:")
-    for i, answer in enumerate(answer_options):
-        st.write(f"{i+1}. {answer}")
+    # Zeige die Antwortmöglichkeiten als anklickbare Kästchen an
+    selected_option = st.radio("Antwortmöglichkeiten:", answer_options)
     
-    # Popup-Feld mit der Anzahl der bereits abgestimmten Personen
-    if st.button("Anzeigen"):
-        st.sidebar.text(f"Bereits abgestimmt: {num_votes} Personen")
+    # Speichern-Button, um die ausgewählte Antwort zu speichern
+    if st.button("Speichern"):
+        st.write(f"Sie haben '{selected_option}' als Antwort gespeichert.")
