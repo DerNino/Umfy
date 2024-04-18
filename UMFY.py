@@ -1,5 +1,3 @@
-# Speichere diesen Code in einer Datei mit der Erweiterung ".py", z.B. "app.py"
-
 import streamlit as st
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import random
@@ -28,13 +26,13 @@ def generate_survey_question():
         "Rauchgewohnheiten": "Rauchen Sie?",
         "Alkoholkonsum": "Wie oft trinken Sie Alkohol in der Woche?"
     }
-    
+
     # Zufälliges Thema auswählen
     topic = random.choice(list(survey_topics.keys()))
     question = survey_topics[topic]
-    
+
     # Generiere Antwortmöglichkeiten basierend auf dem gewählten Thema
-    if topic in ["Flugreisen", "Autoverkehr", "Sportaktivitäten", "Bildschirmzeit", "Gesundheitsvorsorge", 
+    if topic in ["Flugreisen", "Autoverkehr", "Sportaktivitäten", "Bildschirmzeit", "Gesundheitsvorsorge",
                  "Nutzung von Öffentlichen Verkehrsmitteln", "Arbeitszeit", "Fernsehgewohnheiten", "Social Media Nutzung"]:
         answer_options = ["Weniger als 1x pro Woche", "1-2x pro Woche", "3-4x pro Woche", "Mehr als 4x pro Woche"]
     elif topic in ["Essensausgaben"]:
@@ -50,23 +48,19 @@ def generate_survey_question():
     elif topic in ["Alkoholkonsum"]:
         answer_options = ["Gar nicht", "Gelegentlich", "Einmal pro Woche", "Mehrmals pro Woche"]
     # Füge weitere Antwortmöglichkeiten für andere Themen hinzu, falls gewünscht
-    
+
     return topic, question, answer_options
 
 # Führe die Streamlit-Anwendung aus
 if __name__ == "__main__":
     topic, question, answer_options = generate_survey_question()
-    
+
     st.write(f"Umfragefrage zum Thema '{topic}': {question}")
-    
+
     # Zeige die Antwortmöglichkeiten als anklickbare Kästchen an
     selected_option = st.radio("Antwortmöglichkeiten:", answer_options)
-    
-    # Speichern-Button, um die ausgewählte Antwort zu speichern und zur "Danke"-Seite zu wechseln
+
+    # Speicher-Button
     if st.button("Speichern"):
         st.write(f"Sie haben '{selected_option}' als Antwort gespeichert.")
         st.write("Vielen Dank fürs Mitmachen!")
-        
-        # Weiterleitung nach 2 Sekunden
-        time.sleep(2)
-        st.experimental_rerun()
