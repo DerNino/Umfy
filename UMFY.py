@@ -54,7 +54,7 @@ def generate_survey_question():
 if __name__ == "__main__":
     # Großer Titel in violetter Farbe
     st.title("UMFY")
-    st.markdown("<h2 style='color:purple;'>Eine Umfrage pro Tag</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:black;'>Eine Umfrage pro Tag</h2>", unsafe_allow_html=True)
 
     topic, question, answer_options = generate_survey_question()
 
