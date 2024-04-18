@@ -1,8 +1,10 @@
+# Speichere diesen Code in einer Datei mit der Erweiterung ".py", z.B. "app.py"
+
 import streamlit as st
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 import random
 
-# Modell und Tokenizer initialisieren (Fehlerbehandlung wird hier nicht benötigt)
+# Modell und Tokenizer initialisieren
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
 model = GPT2LMHeadModel.from_pretrained("gpt2-medium")
 
@@ -40,3 +42,9 @@ def generate_social_question():
     question = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
     
     return question, topic
+
+# Führe die Streamlit-Anwendung aus
+if __name__ == "__main__":
+    question, topic = generate_social_question()
+    st.write(f"Frage zum Thema '{topic}': {question}")
+
