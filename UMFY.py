@@ -1,11 +1,6 @@
 import streamlit as st
-from transformers import GPT2Tokenizer, GPT2LMHeadModel
+
 import random
-
-# Modell und Tokenizer initialisieren
-tokenizer = GPT2Tokenizer.from_pretrained("gpt2-medium")
-model = GPT2LMHeadModel.from_pretrained("gpt2-medium")
-
 def generate_survey_question():
     # Liste von Umfrage-Themen und zugehörigen Fragen
     survey_topics = {
