@@ -1,64 +1,77 @@
 import streamlit as st
-
 import random
-def generate_survey_question():
-    # Liste von Umfrage-Themen und zugehörigen Fragen
-    survey_topics = {
-        "Flugreisen": "Wie oft sind Sie im letzten Jahr geflogen?",
-        "Essensausgaben": "Wie viel geben Sie durchschnittlich für Essen pro Mahlzeit aus?",
-        "Autoverkehr": "Wie viele Kilometer fahren Sie täglich mit dem Auto?",
-        "Sportaktivitäten": "Wie oft betreiben Sie körperliche Aktivitäten pro Woche?",
-        "Bildschirmzeit": "Wie viele Stunden verbringen Sie täglich vor Bildschirmen?",
-        "Einkaufsgewohnheiten": "Wo kaufen Sie am häufigsten Lebensmittel ein?",
-        "Urlaubsziele": "Welche Art von Urlaub bevorzugen Sie am meisten?",
-        "Freizeitaktivitäten": "Was unternehmen Sie am liebsten in Ihrer Freizeit?",
-        "Gesundheitsvorsorge": "Wie oft gehen Sie zur Vorsorgeuntersuchung?",
-        "Nutzung von Öffentlichen Verkehrsmitteln": "Wie oft nutzen Sie öffentliche Verkehrsmittel?",
-        "Arbeitszeit": "Wie viele Stunden arbeiten Sie durchschnittlich pro Woche?",
-        "Fernsehgewohnheiten": "Wie viele Stunden fernsehen Sie täglich?",
-        "Social Media Nutzung": "Wie viel Zeit verbringen Sie täglich auf Social Media Plattformen?",
-        "Rauchgewohnheiten": "Rauchen Sie?",
-        "Alkoholkonsum": "Wie oft trinken Sie Alkohol in der Woche?"
+import datetime
+import requests
+
+# DeepL API-Zugriffsdaten
+DEEPL_API_KEY = "YOUR_DEEPL_API_KEY"
+
+# Dies ist für die Speicherung von Antworten und deren Antworten.
+responses = {}
+
+def generate_fake_name():
+    first_names = ["John", "Emily", "Michael", "Sophia", "William", "Emma", "James", "Olivia", "Benjamin", "Isabella"]
+    last_names = ["Smith", "Johnson", "Brown", "Miller", "Davis", "Garcia", "Wilson", "Taylor", "Anderson", "Thomas"]
+    return f"{random.choice(first_names)} {random.choice(last_names)}"
+
+def get_daily_question(language):
+    today = datetime.date.today()
+    # Verwende den heutigen Tag als Seed, um sicherzustellen, dass die gleiche Frage für alle Benutzer generiert wird
+    random.seed(today.toordinal())
+    return translate_text("What is your favorite book and why?", language)
+
+def translate_text(text, target_language):
+    url = "https://api.deepl.com/v2/translate"
+    params = {
+        "auth_key": DEEPL_API_KEY,
+        "text": text,
+        "target_lang": target_language
     }
+    response = requests.post(url, data=params)
+    if response.status_code == 200:
+        translation = response.json()["translations"][0]["text"]
+        return translation
+    else:
+        return text  # Rückgabe des ursprünglichen Textes im Fehlerfall
 
-    # Zufälliges Thema auswählen
-    topic = random.choice(list(survey_topics.keys()))
-    question = survey_topics[topic]
+def streamlit_ui():
+    languages = ["en", "fr", "de", "it"]
+    language = st.sidebar.selectbox("Language / Langue / Sprache / Lingua", languages)
 
-    # Generiere Antwortmöglichkeiten basierend auf dem gewählten Thema
-    if topic in ["Flugreisen", "Autoverkehr", "Sportaktivitäten", "Bildschirmzeit", "Gesundheitsvorsorge",
-                 "Nutzung von Öffentlichen Verkehrsmitteln", "Arbeitszeit", "Fernsehgewohnheiten", "Social Media Nutzung"]:
-        answer_options = ["Weniger als 1x pro Woche", "1-2x pro Woche", "3-4x pro Woche", "Mehr als 4x pro Woche"]
-    elif topic in ["Essensausgaben"]:
-        answer_options = ["Weniger als 5€", "5€-10€", "10€-20€", "Mehr als 20€"]
-    elif topic in ["Einkaufsgewohnheiten"]:
-        answer_options = ["Supermarkt", "Bauernmarkt", "Online", "Bioladen"]
-    elif topic in ["Urlaubsziele"]:
-        answer_options = ["Strandurlaub", "Städtereise", "Aktivurlaub", "Abenteuerreise"]
-    elif topic in ["Freizeitaktivitäten"]:
-        answer_options = ["Sport treiben", "Lesen", "Musik hören", "Gesellschaftsspiele spielen"]
-    elif topic in ["Rauchgewohnheiten"]:
-        answer_options = ["Ja", "Nein"]
-    elif topic in ["Alkoholkonsum"]:
-        answer_options = ["Gar nicht", "Gelegentlich", "Einmal pro Woche", "Mehrmals pro Woche"]
-    # Füge weitere Antwortmöglichkeiten für andere Themen hinzu, falls gewünscht
+    st.title("UMFY App")
+    st.write(translate_text("Welcome to the UMFY App.", language))
 
-    return topic, question, answer_options
+    today = datetime.date.today()
+    daily_question = get_daily_question(language)
+    st.write(translate_text("Question of the day:", language), daily_question)
 
-# Führe die Streamlit-Anwendung aus
+    # Eingabe und Speicherung der Nutzerantworten
+    user_response = st.text_input(translate_text("Your answer:", language))
+    if st.button(translate_text("Send answer", language)):
+        if today not in responses:
+            responses[today] = {'question': daily_question, 'answers': []}
+        responses[today]['answers'].append({'name': generate_fake_name(), 'response': user_response, 'replies': []})
+        st.success(translate_text("Your answer has been saved.", language))
+
+    # Anzeigen aller Antworten des heutigen Tages
+    if today in responses:
+        st.write(translate_text("Answers for today:", language))
+        for idx, answer in enumerate(responses[today]['answers']):
+            st.text(f"{answer['name']}: {answer['response']}")
+            if st.button(f"{translate_text('Reply to', language)} {answer['name']}"):
+                reply = st.text_input(f"{translate_text('Your reply to', language)} {answer['name']}", key=f"reply{idx + 1}")
+                if st.button(translate_text("Send", language), key=f"send{idx + 1}"):
+                    answer['replies'].append(reply)
+
+    # UI für das Durchsuchen vergangener Antworten
+    with st.sidebar:
+        past_date = st.date_input(translate_text("Browse past dates", language), value=today, min_value=min(responses.keys(), default=today), max_value=today)
+        if past_date in responses:
+            st.write(f"{translate_text('Question from', language)} {past_date}: {responses[past_date]['question']}")
+            for answer in responses[past_date]['answers']:
+                st.text(answer['response'])
+                for reply in answer['replies']:
+                    st.text(f" - {reply}")
+
 if __name__ == "__main__":
-    # Großer Titel in violetter Farbe
-    st.title("UMFY")
-    st.markdown("<h2 style='color:black;'>Eine Umfrage pro Tag</h2>", unsafe_allow_html=True)
-
-    topic, question, answer_options = generate_survey_question()
-
-    st.write(f"Umfragefrage zum Thema '{topic}': {question}")
-
-    # Zeige die Antwortmöglichkeiten als anklickbare Kästchen an
-    selected_option = st.radio("Antwortmöglichkeiten:", answer_options)
-
-    # Speicher-Button
-    if st.button("Speichern"):
-        st.write(f"Sie haben '{selected_option}' als Antwort gespeichert.")
-        st.write("Vielen Dank fürs Mitmachen!")
+    streamlit_ui()
