@@ -1,10 +1,31 @@
 import streamlit as st
 import random
 import datetime
-import requests
+from googletrans import Translator
 
-# DeepL API-Zugriffsdaten
-DEEPL_API_KEY = "YOUR_DEEPL_API_KEY"
+# Liste von 100 sozialkritischen Fragen
+social_questions = [
+    "Was denkst du über die soziale Ungleichheit in unserer Gesellschaft?",
+   "Welche Maßnahmen könnten ergriffen werden, um Armut zu bekämpfen?",
+   "Wie können wir die Bildungschancen für alle verbessern?",
+   "Welche Rolle spielt die Regierung bei der Lösung sozialer Probleme?",
+   "Wie können wir die Gleichstellung der Geschlechter vorantreiben?",
+   "Was können wir tun, um die Diskriminierung von Minderheiten zu verringern?",
+   "Wie beeinflusst soziale Ungerechtigkeit das Wirtschaftswachstum?",
+   "Welche Veränderungen könnten die Lebensqualität für alle verbessern?",
+   "Wie können wir sicherstellen, dass jeder Zugang zu angemessener Gesundheitsversorgung hat?",
+   "Welche Auswirkungen hat Umweltverschmutzung auf benachteiligte Gemeinschaften?",
+   "Wie können wir den Klimawandel bekämpfen und gleichzeitig soziale Gerechtigkeit fördern?",
+   "Welche Rolle spielen Unternehmen bei der Lösung sozialer Probleme?",
+   "Wie können wir die Obdachlosigkeit in unserer Gemeinschaft reduzieren?",
+   "Wie können wir die soziale Isolation älterer Menschen bekämpfen?",
+    "Welche Auswirkungen hat der Zugang zu sauberem Wasser auf die Gesundheit von Gemeinschaften?",
+    "Wie können wir die Ausbeutung von Arbeitskräften in globalen Lieferketten verhindern?",
+    "Was sind die Ursachen von sozialer Ausgrenzung und wie können wir sie bekämpfen?",
+    "Welche Rolle spielt Bildung bei der Schaffung einer gerechteren Gesellschaft?",
+    "Wie können wir die digitale Kluft zwischen verschiedenen Bevölkerungsgruppen überwinden?",
+    "Welche Maßnahmen können ergriffen werden, um die soziale Mobilität zu erhöhen?",
+]
 
 # Dies ist für die Speicherung von Antworten und deren Antworten.
 responses = {}
@@ -15,24 +36,12 @@ def generate_fake_name():
     return f"{random.choice(first_names)} {random.choice(last_names)}"
 
 def get_daily_question(language):
-    today = datetime.date.today()
-    # Verwende den heutigen Tag als Seed, um sicherzustellen, dass die gleiche Frage für alle Benutzer generiert wird
-    random.seed(today.toordinal())
-    return translate_text("What is your favorite book and why?", language)
+    return translate_text(random.choice(social_questions), language)
 
 def translate_text(text, target_language):
-    url = "https://api.deepl.com/v2/translate"
-    params = {
-        "auth_key": DEEPL_API_KEY,
-        "text": text,
-        "target_lang": target_language
-    }
-    response = requests.post(url, data=params)
-    if response.status_code == 200:
-        translation = response.json()["translations"][0]["text"]
-        return translation
-    else:
-        return text  # Rückgabe des ursprünglichen Textes im Fehlerfall
+    translator = Translator()
+    translated_text = translator.translate(text, dest=target_language)
+    return translated_text.text
 
 def streamlit_ui():
     languages = ["en", "fr", "de", "it"]
