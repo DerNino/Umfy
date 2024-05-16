@@ -3,40 +3,41 @@ import random
 import datetime
 import pandas as pd
 import os
-import json
 from googletrans import Translator
 from werkzeug.security import generate_password_hash, check_password_hash
+from firebase_config import db
 
 # CSV-Datei für die Fragen
 CSV_FILE = "questions.csv"
 
-# JSON-Dateien für Benutzer und Antworten
-USERS_FILE = "users.json"
-RESPONSES_FILE = "responses.json"
-
 # Dummy-Benutzer für die Anmeldung (in einer echten Anwendung würden Sie eine Datenbank verwenden)
-if os.path.exists(USERS_FILE):
-    with open(USERS_FILE, 'r') as file:
-        users = json.load(file)
-else:
-    users = {}
+users = {}
 
 # Antworten-Speicherung (in einer echten Anwendung würden Sie eine Datenbank verwenden)
-if os.path.exists(RESPONSES_FILE):
-    with open(RESPONSES_FILE, 'r') as file:
-        responses = {datetime.datetime.strptime(k, "%Y-%m-%d").date(): v for k, v in json.load(file).items()}
-else:
-    responses = {}
+responses = {}
+
+# Benutzer laden
+def load_users():
+    global users
+    users_ref = db.collection('users')
+    docs = users_ref.stream()
+    users = {doc.id: doc.to_dict()['password'] for doc in docs}
 
 # Benutzer speichern
-def save_users():
-    with open(USERS_FILE, 'w') as file:
-        json.dump(users, file)
+def save_user(username, password):
+    db.collection('users').document(username).set({'password': password})
+
+# Antworten laden
+def load_responses():
+    global responses
+    responses_ref = db.collection('responses')
+    docs = responses_ref.stream()
+    for doc in docs:
+        responses[datetime.datetime.strptime(doc.id, "%Y-%m-%d").date()] = doc.to_dict()
 
 # Antworten speichern
-def save_responses():
-    with open(RESPONSES_FILE, 'w') as file:
-        json.dump({k.strftime("%Y-%m-%d"): v for k, v in responses.items()}, file)
+def save_response(date, response):
+    db.collection('responses').document(date.strftime("%Y-%m-%d")).set(response)
 
 # Laden der Fragen aus einer CSV-Datei
 def load_questions_from_csv(file_path):
@@ -90,8 +91,9 @@ def register_ui():
         elif username in users:
             st.sidebar.error("Benutzername existiert bereits")
         else:
-            users[username] = generate_password_hash(password)
-            save_users()
+            hashed_password = generate_password_hash(password)
+            save_user(username, hashed_password)
+            load_users()  # Aktualisieren Sie die lokale Benutzerliste
             st.session_state['username'] = username
             st.session_state['register'] = False
             st.sidebar.success("Registrierung erfolgreich! Sie sind jetzt eingeloggt.")
@@ -115,6 +117,9 @@ def streamlit_ui():
     if 'register' not in st.session_state:
         st.session_state['register'] = False
 
+    load_users()
+    load_responses()
+
     if st.session_state['register']:
         register_ui()
     elif 'username' not in st.session_state:
@@ -133,7 +138,7 @@ def streamlit_ui():
             if today not in responses:
                 responses[today] = {'question': daily_question, 'answers': []}
             responses[today]['answers'].append({'name': generate_fake_name(), 'response': user_response, 'replies': []})
-            save_responses()
+            save_response(today, responses[today])
             st.success("Ihre Antwort wurde gespeichert.")
 
         # Anzeigen aller Antworten des heutigen Tages
@@ -145,7 +150,7 @@ def streamlit_ui():
                     reply = st.text_input(f"Ihre Antwort an {answer['name']}", key=f"reply_input_{idx}")
                     if st.button("Antwort senden", key=f"send_reply_button_{idx}"):
                         answer['replies'].append(reply)
-                        save_responses()
+                        save_response(today, responses[today])
 
         # UI für das Durchsuchen vergangener Antworten
         with st.sidebar:
