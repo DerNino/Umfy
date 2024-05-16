@@ -3,17 +3,40 @@ import random
 import datetime
 import pandas as pd
 import os
+import json
 from googletrans import Translator
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # CSV-Datei für die Fragen
 CSV_FILE = "questions.csv"
 
+# JSON-Dateien für Benutzer und Antworten
+USERS_FILE = "users.json"
+RESPONSES_FILE = "responses.json"
+
 # Dummy-Benutzer für die Anmeldung (in einer echten Anwendung würden Sie eine Datenbank verwenden)
-users = {}
+if os.path.exists(USERS_FILE):
+    with open(USERS_FILE, 'r') as file:
+        users = json.load(file)
+else:
+    users = {}
 
 # Antworten-Speicherung (in einer echten Anwendung würden Sie eine Datenbank verwenden)
-responses = {}
+if os.path.exists(RESPONSES_FILE):
+    with open(RESPONSES_FILE, 'r') as file:
+        responses = json.load(file)
+else:
+    responses = {}
+
+# Benutzer speichern
+def save_users():
+    with open(USERS_FILE, 'w') as file:
+        json.dump(users, file)
+
+# Antworten speichern
+def save_responses():
+    with open(RESPONSES_FILE, 'w') as file:
+        json.dump(responses, file)
 
 # Laden der Fragen aus einer CSV-Datei
 def load_questions_from_csv(file_path):
@@ -68,6 +91,7 @@ def register_ui():
             st.sidebar.error("Benutzername existiert bereits")
         else:
             users[username] = generate_password_hash(password)
+            save_users()
             st.session_state['username'] = username
             st.session_state['register'] = False
             st.sidebar.success("Registrierung erfolgreich! Sie sind jetzt eingeloggt.")
@@ -109,6 +133,7 @@ def streamlit_ui():
             if today not in responses:
                 responses[today] = {'question': daily_question, 'answers': []}
             responses[today]['answers'].append({'name': generate_fake_name(), 'response': user_response, 'replies': []})
+            save_responses()
             st.success("Ihre Antwort wurde gespeichert.")
 
         # Anzeigen aller Antworten des heutigen Tages
@@ -120,6 +145,7 @@ def streamlit_ui():
                     reply = st.text_input(f"Ihre Antwort an {answer['name']}", key=f"reply_input_{idx}")
                     if st.button("Antwort senden", key=f"send_reply_button_{idx}"):
                         answer['replies'].append(reply)
+                        save_responses()
 
         # UI für das Durchsuchen vergangener Antworten
         with st.sidebar:
