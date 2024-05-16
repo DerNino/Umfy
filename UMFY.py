@@ -68,8 +68,9 @@ def register_ui():
             st.sidebar.error("Benutzername existiert bereits")
         else:
             users[username] = generate_password_hash(password)
+            st.session_state['username'] = username
             st.session_state['register'] = False
-            st.sidebar.success("Registrierung erfolgreich! Bitte loggen Sie sich ein.")
+            st.sidebar.success("Registrierung erfolgreich! Sie sind jetzt eingeloggt.")
 
 # Generierung eines zufälligen Namens
 def generate_fake_name():
