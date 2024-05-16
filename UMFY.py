@@ -1,82 +1,92 @@
 import streamlit as st
 import random
 import datetime
+import pandas as pd
 from googletrans import Translator
+from werkzeug.security import generate_password_hash, check_password_hash
 
-# Liste von 100 sozialkritischen Fragen
-social_questions = [
-    "Was denkst du über die soziale Ungleichheit in unserer Gesellschaft?",
-   "Welche Maßnahmen könnten ergriffen werden, um Armut zu bekämpfen?",
-   "Wie können wir die Bildungschancen für alle verbessern?",
-   "Welche Rolle spielt die Regierung bei der Lösung sozialer Probleme?",
-   "Wie können wir die Gleichstellung der Geschlechter vorantreiben?",
-   "Was können wir tun, um die Diskriminierung von Minderheiten zu verringern?",
-   "Wie beeinflusst soziale Ungerechtigkeit das Wirtschaftswachstum?",
-   "Welche Veränderungen könnten die Lebensqualität für alle verbessern?",
-   "Wie können wir sicherstellen, dass jeder Zugang zu angemessener Gesundheitsversorgung hat?",
-   "Welche Auswirkungen hat Umweltverschmutzung auf benachteiligte Gemeinschaften?",
-   "Wie können wir den Klimawandel bekämpfen und gleichzeitig soziale Gerechtigkeit fördern?",
-   "Welche Rolle spielen Unternehmen bei der Lösung sozialer Probleme?",
-   "Wie können wir die Obdachlosigkeit in unserer Gemeinschaft reduzieren?",
-   "Wie können wir die soziale Isolation älterer Menschen bekämpfen?",
-    "Welche Auswirkungen hat der Zugang zu sauberem Wasser auf die Gesundheit von Gemeinschaften?",
-    "Wie können wir die Ausbeutung von Arbeitskräften in globalen Lieferketten verhindern?",
-    "Was sind die Ursachen von sozialer Ausgrenzung und wie können wir sie bekämpfen?",
-    "Welche Rolle spielt Bildung bei der Schaffung einer gerechteren Gesellschaft?",
-    "Wie können wir die digitale Kluft zwischen verschiedenen Bevölkerungsgruppen überwinden?",
-    "Welche Maßnahmen können ergriffen werden, um die soziale Mobilität zu erhöhen?",
-]
+# CSV-Datei für die Fragen
+CSV_FILE = "questions.csv"
 
-# Dies ist für die Speicherung von Antworten und deren Antworten.
+# Dummy-Benutzer für die Anmeldung (in einer echten Anwendung würden Sie eine Datenbank verwenden)
+users = {
+    "user1": generate_password_hash("password1"),
+    "user2": generate_password_hash("password2"),
+}
+
+# Antworten-Speicherung (in einer echten Anwendung würden Sie eine Datenbank verwenden)
 responses = {}
 
+# Laden der Fragen aus einer CSV-Datei
+def load_questions_from_csv(file_path):
+    questions_df = pd.read_csv(file_path)
+    return questions_df['question'].tolist()
+
+# Übersetzung von Text
+def translate_text(text, target_language="de"):
+    translator = Translator()
+    translated_text = translator.translate(text, dest=target_language)
+    return translated_text.text
+
+# UI für die Anmeldung
+def login_ui():
+    st.sidebar.title("Login")
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
+    if st.sidebar.button("Login"):
+        if username in users and check_password_hash(users[username], password):
+            st.session_state['username'] = username
+            st.sidebar.success("Login successful!")
+        else:
+            st.sidebar.error("Invalid username or password")
+
+# Generierung eines zufälligen Namens
 def generate_fake_name():
     first_names = ["John", "Emily", "Michael", "Sophia", "William", "Emma", "James", "Olivia", "Benjamin", "Isabella"]
     last_names = ["Smith", "Johnson", "Brown", "Miller", "Davis", "Garcia", "Wilson", "Taylor", "Anderson", "Thomas"]
     return f"{random.choice(first_names)} {random.choice(last_names)}"
 
-def get_daily_question(language):
-    return translate_text(random.choice(social_questions), language)
+# Tägliche Frage erhalten
+def get_daily_question():
+    questions = load_questions_from_csv(CSV_FILE)
+    return random.choice(questions)
 
-def translate_text(text, target_language):
-    translator = Translator()
-    translated_text = translator.translate(text, dest=target_language)
-    return translated_text.text
-
+# Streamlit UI
 def streamlit_ui():
-    languages = ["en", "fr", "de", "it"]
-    language = st.sidebar.selectbox("Language / Langue / Sprache / Lingua", languages)
+    if 'username' not in st.session_state:
+        login_ui()
+        return
 
     st.title("UMFY App")
-    st.write(translate_text("Welcome to the UMFY App.", language))
+    st.write("Willkommen bei der UMFY App.")
 
     today = datetime.date.today()
-    daily_question = get_daily_question(language)
-    st.write(translate_text("Question of the day:", language), daily_question)
+    daily_question = get_daily_question()
+    st.write("Frage des Tages:", daily_question)
 
     # Eingabe und Speicherung der Nutzerantworten
-    user_response = st.text_input(translate_text("Your answer:", language))
-    if st.button(translate_text("Send answer", language)):
+    user_response = st.text_input("Ihre Antwort:")
+    if st.button("Antwort senden"):
         if today not in responses:
             responses[today] = {'question': daily_question, 'answers': []}
         responses[today]['answers'].append({'name': generate_fake_name(), 'response': user_response, 'replies': []})
-        st.success(translate_text("Your answer has been saved.", language))
+        st.success("Ihre Antwort wurde gespeichert.")
 
     # Anzeigen aller Antworten des heutigen Tages
     if today in responses:
-        st.write(translate_text("Answers for today:", language))
+        st.write("Antworten für heute:")
         for idx, answer in enumerate(responses[today]['answers']):
             st.text(f"{answer['name']}: {answer['response']}")
-            if st.button(f"{translate_text('Reply to', language)} {answer['name']}"):
-                reply = st.text_input(f"{translate_text('Your reply to', language)} {answer['name']}", key=f"reply{idx + 1}")
-                if st.button(translate_text("Send", language), key=f"send{idx + 1}"):
+            if st.button(f"Antworten an {answer['name']}", key=f"reply_button_{idx}"):
+                reply = st.text_input(f"Ihre Antwort an {answer['name']}", key=f"reply_input_{idx}")
+                if st.button("Antwort senden", key=f"send_reply_button_{idx}"):
                     answer['replies'].append(reply)
 
     # UI für das Durchsuchen vergangener Antworten
     with st.sidebar:
-        past_date = st.date_input(translate_text("Browse past dates", language), value=today, min_value=min(responses.keys(), default=today), max_value=today)
+        past_date = st.date_input("Durchsuchen vergangener Daten", value=today, min_value=min(responses.keys(), default=today), max_value=today)
         if past_date in responses:
-            st.write(f"{translate_text('Question from', language)} {past_date}: {responses[past_date]['question']}")
+            st.write(f"Frage vom {past_date}: {responses[past_date]['question']}")
             for answer in responses[past_date]['answers']:
                 st.text(answer['response'])
                 for reply in answer['replies']:
