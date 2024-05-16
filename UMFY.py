@@ -25,9 +25,12 @@ def load_questions_from_csv(file_path):
         if 'question' not in questions_df.columns:
             st.error(f"Die Datei {file_path} enthält nicht die erwartete Spalte 'question'.")
             return []
-        return questions_df['question'].tolist()
+        return questions_df['question'].dropna().tolist()
     except pd.errors.ParserError as e:
         st.error(f"Fehler beim Parsen der Datei {file_path}: {e}")
+        return []
+    except Exception as e:
+        st.error(f"Ein unerwarteter Fehler ist aufgetreten: {e}")
         return []
 
 # Übersetzung von Text
