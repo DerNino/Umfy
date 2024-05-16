@@ -47,11 +47,12 @@ def login_ui():
     if st.sidebar.button("Login"):
         if username in users and check_password_hash(users[username], password):
             st.session_state['username'] = username
+            st.session_state['register'] = False
             st.sidebar.success("Login erfolgreich!")
         else:
             st.sidebar.error("Ungültiger Benutzername oder Passwort")
     
-    if st.sidebar.button("Registrieren"):
+    if st.sidebar.button("Register"):
         st.session_state['register'] = True
 
 # UI für die Registrierung
@@ -85,7 +86,10 @@ def get_daily_question():
 
 # Streamlit UI
 def streamlit_ui():
-    if 'register' in st.session_state and st.session_state['register']:
+    if 'register' not in st.session_state:
+        st.session_state['register'] = False
+
+    if st.session_state['register']:
         register_ui()
     elif 'username' not in st.session_state:
         login_ui()
