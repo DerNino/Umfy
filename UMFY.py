@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import datetime
 import pandas as pd
+import os
 from googletrans import Translator
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -16,8 +17,18 @@ responses = {}
 
 # Laden der Fragen aus einer CSV-Datei
 def load_questions_from_csv(file_path):
-    questions_df = pd.read_csv(file_path)
-    return questions_df['question'].tolist()
+    if not os.path.exists(file_path):
+        st.error(f"Die Datei {file_path} wurde nicht gefunden.")
+        return []
+    try:
+        questions_df = pd.read_csv(file_path)
+        if 'question' not in questions_df.columns:
+            st.error(f"Die Datei {file_path} enthält nicht die erwartete Spalte 'question'.")
+            return []
+        return questions_df['question'].tolist()
+    except pd.errors.ParserError as e:
+        st.error(f"Fehler beim Parsen der Datei {file_path}: {e}")
+        return []
 
 # Übersetzung von Text
 def translate_text(text, target_language="de"):
@@ -67,6 +78,8 @@ def generate_fake_name():
 # Tägliche Frage erhalten
 def get_daily_question():
     questions = load_questions_from_csv(CSV_FILE)
+    if not questions:
+        return "Keine Frage verfügbar"
     return random.choice(questions)
 
 # Streamlit UI
