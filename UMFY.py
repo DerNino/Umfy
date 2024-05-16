@@ -9,10 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 CSV_FILE = "questions.csv"
 
 # Dummy-Benutzer für die Anmeldung (in einer echten Anwendung würden Sie eine Datenbank verwenden)
-users = {
-    "user1": generate_password_hash("password1"),
-    "user2": generate_password_hash("password2"),
-}
+users = {}
 
 # Antworten-Speicherung (in einer echten Anwendung würden Sie eine Datenbank verwenden)
 responses = {}
@@ -39,6 +36,27 @@ def login_ui():
             st.sidebar.success("Login successful!")
         else:
             st.sidebar.error("Invalid username or password")
+    
+    if st.sidebar.button("Register"):
+        st.session_state['register'] = True
+
+# UI für die Registrierung
+def register_ui():
+    st.sidebar.title("Register")
+    username = st.sidebar.text_input("Choose a username")
+    password = st.sidebar.text_input("Choose a password", type="password")
+    confirm_password = st.sidebar.text_input("Confirm password", type="password")
+    if st.sidebar.button("Register"):
+        if password != confirm_password:
+            st.sidebar.error("Passwords do not match")
+        elif username in users:
+            st.sidebar.error("Username already exists")
+        else:
+            users[username] = generate_password_hash(password)
+            st.session_state['username'] = username
+            st.session_state['register'] = False
+            st.sidebar.success("Registration successful!")
+            st.sidebar.info("You can now log in")
 
 # Generierung eines zufälligen Namens
 def generate_fake_name():
@@ -53,44 +71,45 @@ def get_daily_question():
 
 # Streamlit UI
 def streamlit_ui():
-    if 'username' not in st.session_state:
+    if 'register' in st.session_state and st.session_state['register']:
+        register_ui()
+    elif 'username' not in st.session_state:
         login_ui()
-        return
+    else:
+        st.title("UMFY App")
+        st.write("Willkommen bei der UMFY App.")
 
-    st.title("UMFY App")
-    st.write("Willkommen bei der UMFY App.")
+        today = datetime.date.today()
+        daily_question = get_daily_question()
+        st.write("Frage des Tages:", daily_question)
 
-    today = datetime.date.today()
-    daily_question = get_daily_question()
-    st.write("Frage des Tages:", daily_question)
+        # Eingabe und Speicherung der Nutzerantworten
+        user_response = st.text_input("Ihre Antwort:")
+        if st.button("Antwort senden"):
+            if today not in responses:
+                responses[today] = {'question': daily_question, 'answers': []}
+            responses[today]['answers'].append({'name': generate_fake_name(), 'response': user_response, 'replies': []})
+            st.success("Ihre Antwort wurde gespeichert.")
 
-    # Eingabe und Speicherung der Nutzerantworten
-    user_response = st.text_input("Ihre Antwort:")
-    if st.button("Antwort senden"):
-        if today not in responses:
-            responses[today] = {'question': daily_question, 'answers': []}
-        responses[today]['answers'].append({'name': generate_fake_name(), 'response': user_response, 'replies': []})
-        st.success("Ihre Antwort wurde gespeichert.")
+        # Anzeigen aller Antworten des heutigen Tages
+        if today in responses:
+            st.write("Antworten für heute:")
+            for idx, answer in enumerate(responses[today]['answers']):
+                st.text(f"{answer['name']}: {answer['response']}")
+                if st.button(f"Antworten an {answer['name']}", key=f"reply_button_{idx}"):
+                    reply = st.text_input(f"Ihre Antwort an {answer['name']}", key=f"reply_input_{idx}")
+                    if st.button("Antwort senden", key=f"send_reply_button_{idx}"):
+                        answer['replies'].append(reply)
 
-    # Anzeigen aller Antworten des heutigen Tages
-    if today in responses:
-        st.write("Antworten für heute:")
-        for idx, answer in enumerate(responses[today]['answers']):
-            st.text(f"{answer['name']}: {answer['response']}")
-            if st.button(f"Antworten an {answer['name']}", key=f"reply_button_{idx}"):
-                reply = st.text_input(f"Ihre Antwort an {answer['name']}", key=f"reply_input_{idx}")
-                if st.button("Antwort senden", key=f"send_reply_button_{idx}"):
-                    answer['replies'].append(reply)
-
-    # UI für das Durchsuchen vergangener Antworten
-    with st.sidebar:
-        past_date = st.date_input("Durchsuchen vergangener Daten", value=today, min_value=min(responses.keys(), default=today), max_value=today)
-        if past_date in responses:
-            st.write(f"Frage vom {past_date}: {responses[past_date]['question']}")
-            for answer in responses[past_date]['answers']:
-                st.text(answer['response'])
-                for reply in answer['replies']:
-                    st.text(f" - {reply}")
+        # UI für das Durchsuchen vergangener Antworten
+        with st.sidebar:
+            past_date = st.date_input("Durchsuchen vergangener Daten", value=today, min_value=min(responses.keys(), default=today), max_value=today)
+            if past_date in responses:
+                st.write(f"Frage vom {past_date}: {responses[past_date]['question']}")
+                for answer in responses[past_date]['answers']:
+                    st.text(answer['response'])
+                    for reply in answer['replies']:
+                        st.text(f" - {reply}")
 
 if __name__ == "__main__":
     streamlit_ui()
