@@ -21,7 +21,7 @@ def load_questions_from_csv(file_path):
         st.error(f"Die Datei {file_path} wurde nicht gefunden.")
         return []
     try:
-        questions_df = pd.read_csv(file_path)
+        questions_df = pd.read_csv(file_path, encoding='utf-8')
         if 'question' not in questions_df.columns:
             st.error(f"Die Datei {file_path} enthält nicht die erwartete Spalte 'question'.")
             return []
@@ -47,30 +47,28 @@ def login_ui():
     if st.sidebar.button("Login"):
         if username in users and check_password_hash(users[username], password):
             st.session_state['username'] = username
-            st.sidebar.success("Login successful!")
+            st.sidebar.success("Login erfolgreich!")
         else:
-            st.sidebar.error("Invalid username or password")
+            st.sidebar.error("Ungültiger Benutzername oder Passwort")
     
-    if st.sidebar.button("Register"):
+    if st.sidebar.button("Registrieren"):
         st.session_state['register'] = True
 
 # UI für die Registrierung
 def register_ui():
-    st.sidebar.title("Register")
-    username = st.sidebar.text_input("Choose a username")
-    password = st.sidebar.text_input("Choose a password", type="password")
-    confirm_password = st.sidebar.text_input("Confirm password", type="password")
-    if st.sidebar.button("Register"):
+    st.sidebar.title("Registrieren")
+    username = st.sidebar.text_input("Wählen Sie einen Benutzernamen")
+    password = st.sidebar.text_input("Wählen Sie ein Passwort", type="password")
+    confirm_password = st.sidebar.text_input("Passwort bestätigen", type="password")
+    if st.sidebar.button("Registrieren"):
         if password != confirm_password:
-            st.sidebar.error("Passwords do not match")
+            st.sidebar.error("Passwörter stimmen nicht überein")
         elif username in users:
-            st.sidebar.error("Username already exists")
+            st.sidebar.error("Benutzername existiert bereits")
         else:
             users[username] = generate_password_hash(password)
-            st.session_state['username'] = username
             st.session_state['register'] = False
-            st.sidebar.success("Registration successful!")
-            st.sidebar.info("You can now log in")
+            st.sidebar.success("Registrierung erfolgreich! Bitte loggen Sie sich ein.")
 
 # Generierung eines zufälligen Namens
 def generate_fake_name():
