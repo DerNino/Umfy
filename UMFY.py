@@ -24,7 +24,7 @@ else:
 # Antworten-Speicherung (in einer echten Anwendung würden Sie eine Datenbank verwenden)
 if os.path.exists(RESPONSES_FILE):
     with open(RESPONSES_FILE, 'r') as file:
-        responses = json.load(file)
+        responses = {datetime.datetime.strptime(k, "%Y-%m-%d").date(): v for k, v in json.load(file).items()}
 else:
     responses = {}
 
@@ -36,7 +36,7 @@ def save_users():
 # Antworten speichern
 def save_responses():
     with open(RESPONSES_FILE, 'w') as file:
-        json.dump(responses, file)
+        json.dump({k.strftime("%Y-%m-%d"): v for k, v in responses.items()}, file)
 
 # Laden der Fragen aus einer CSV-Datei
 def load_questions_from_csv(file_path):
