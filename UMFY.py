@@ -71,6 +71,7 @@ def register_ui():
             st.session_state['username'] = username
             st.session_state['register'] = False
             st.sidebar.success("Registrierung erfolgreich! Sie sind jetzt eingeloggt.")
+            st.experimental_rerun()  # Erzwinge das Neuladen der Seite, um die Umfrage-UI anzuzeigen
 
 # Generierung eines zufälligen Namens
 def generate_fake_name():
